@@ -35,7 +35,7 @@ df_long <- percollcounts %>%
     Replicate = str_extract(Sample, "[^_]+$")
   ) %>%
   # Make sure R knows the order you want for the x-axis (otherwise it sorts alphabetically)
-  mutate(Concentration = factor(Concentration, levels = c("30%", "50%", "60%", "pellet")))
+  mutate(Concentration = factor(Concentration, levels = c("30", "50", "60", "pellet")))
 
 # 2. Generate the SuperPlot
 ggplot(df_long, aes(x = Concentration, y = Count)) +
