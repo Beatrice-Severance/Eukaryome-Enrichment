@@ -1,0 +1,55 @@
+---
+title: "Percoll-quantification"
+author: "Beatrice Severance"
+date: "2026-04-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+Load dependencies and files
+```{r}
+library(tidyverse)
+library(readxl)
+percollcounts <- read_excel("percoll-3-13-2026.xlsx")
+```
+
+## Plot data
+
+```{r pressure, echo=FALSE}
+# 1. Clean and split the data
+df_long <- percollcounts %>%
+  pivot_longer(
+    cols = c("C. albicans count", "E. coli count"), 
+    names_to = "Species", 
+    values_to = "Count"
+  ) %>%
+  mutate(
+    Species = str_replace(Species, " count", ""),
+    # Extract the concentration (everything before the underscore)
+    Concentration = str_extract(Sample, "^[^_]+"),
+    # Extract the replicate number (everything after the underscore)
+    Replicate = str_extract(Sample, "[^_]+$")
+  ) %>%
+  # Make sure R knows the order you want for the x-axis (otherwise it sorts alphabetically)
+  mutate(Concentration = factor(Concentration, levels = c("30%", "50%", "60%", "pellet")))
+
+# 2. Generate the SuperPlot
+ggplot(df_long, aes(x = Concentration, y = Count)) +
+  # Add the boxplot for the overall concentration (don't fill it with color, keep it clean)
+  geom_boxplot(outlier.shape = NA, alpha = 0.3, fill = "gray90") +
+  # Add the FOV dots, but color them by the Replicate
+  geom_jitter(aes(color = Replicate), width = 0.15, size = 2.5, alpha = 0.8) +
+  facet_wrap(~ Species, scales = "free_y") +
+  theme_classic() +
+  labs(
+    title = "Cell Counts by Percoll Concentration",
+    subtitle = "Points colored by technical replicate",
+    x = "Percoll Concentration",
+    y = "Number of Cells per FOV",
+    color = "Replicate"
+  )
+```
